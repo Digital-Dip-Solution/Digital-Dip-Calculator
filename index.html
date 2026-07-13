@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Khan Petroleum — Dip Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f4f5f7">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="plate">
+    <button type="button" class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle dark/light theme">
+      <span id="themeIcon">🌙</span>
+    </button>
+    <span class="plate-eyebrow">Dip Reading → Litres</span>
+    <h1>Khan Petroleum</h1>
+    <div class="plate-clock" id="clock">—</div>
+  </div>
+</header>
+
+<main class="tanks tanks-single">
+
+  <section class="tank-card" data-tank="t1">
+    <div class="tank-card-head">
+      <span class="tank-chip">25-KL</span>
+      <span class="tank-capacity">cap. 23,462&nbsp;L</span>
+    </div>
+
+    <div class="tank-body">
+      <div class="gauge" aria-hidden="true">
+        <div class="gauge-tube">
+          <div class="gauge-fill" id="g1"></div>
+          <div class="gauge-ticks"></div>
+        </div>
+      </div>
+
+      <div class="tank-controls">
+        <label class="field">
+          <span class="field-label">Dip reading</span>
+          <span class="field-input-wrap">
+            <input id="t1" inputmode="decimal" autocomplete="off" placeholder="0" oninput="calc('t1',tank1,'r1')">
+            <span class="field-suffix">mm</span>
+          </span>
+        </label>
+
+        <div class="readout">
+          <span class="readout-label">Volume</span>
+          <div id="r1" class="readout-value">0.00 L</div>
+          <span id="p1" class="readout-pct">0% full</span>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="save-btn" onclick="saveReading('t1','Tank 1')">💾 Save reading</button>
+          <button type="button" class="clear-btn" onclick="clearInput('t1',tank1,'r1')">✕ Clear</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<section class="history">
+  <div class="history-head">
+    <span class="history-title">💾 Reading History</span>
+    <button type="button" class="history-clear" onclick="clearHistory()">Clear</button>
+  </div>
+  <div id="historyList" class="history-list">
+    <div class="history-empty">No readings saved yet.</div>
+  </div>
+</section>
+
+<footer class="site-foot">
+  <span>Readings are linearly interpolated from calibration charts. Verify manually before dispatch.</span>
+
+  <div class="dev-panel">
+    <div class="dev-brand">
+      <svg class="dev-logo" viewBox="0 0 24 24" fill="none"><path d="M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-7-13-7-13z" fill="currentColor"></path></svg>
+      <span class="dev-company">Digital <em>Dip</em> Solutions</span>
+    </div>
+
+    <div class="dev-sub">Developed by Waqar Ali Punjab &nbsp;•&nbsp; App v1.3</div>
+
+    <div class="dev-contact">
+      <a href="mailto:Waqarali.punjab@gmail.com" class="dev-link">
+        <svg class="dev-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M2 6l10 7 10-7"></path></svg>
+        Waqarali.punjab@gmail.com
+      </a>
+      <a href="https://api.whatsapp.com/send?phone=923009630013&text=Hello%21%20I%20am%20interested%20in%20the%20Fuel%20Tank%20Dip%20Calculator%20App.%20Please%20share%20more%20details." class="dev-link" target="_blank" rel="noopener">
+        <svg class="dev-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.39 1.26 4.81L2 22l5.42-1.42a9.87 9.87 0 0 0 4.62 1.18h.01c5.46 0 9.9-4.45 9.9-9.91C21.95 6.45 17.5 2 12.04 2zm5.8 14.03c-.24.68-1.4 1.3-1.93 1.36-.5.06-1.02.26-3.43-.72-2.9-1.19-4.77-4.12-4.92-4.31-.15-.2-1.18-1.57-1.18-3 0-1.42.75-2.12 1.02-2.41.26-.29.57-.36.76-.36.19 0 .38 0 .55.01.18.01.42-.07.65.5.24.58.82 2 .89 2.15.07.15.11.32.02.51-.09.19-.14.31-.28.48-.14.16-.29.37-.42.5-.14.14-.28.29-.12.57.16.29.72 1.19 1.55 1.93 1.06.95 1.96 1.24 2.24 1.38.29.14.45.12.62-.07.17-.19.72-.84.91-1.13.19-.29.38-.24.64-.14.26.1 1.67.79 1.95.93.29.14.48.21.55.33.07.12.07.68-.17 1.36z"></path></svg>
+        +92-300-9630013
+      </a>
+    </div>
+  </div>
+</footer>
+
+<script src="tank1.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
