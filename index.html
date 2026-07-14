@@ -23,6 +23,7 @@
     <span class="plate-eyebrow">Dip Reading → Litres</span>
     <h1>Khan Petroleum</h1>
     <div class="plate-clock" id="clock">—</div>
+    <button type="button" class="settings-toggle" id="settingsToggle" onclick="openSettings()" aria-label="App settings">⚙️</button>
   </div>
 </header>
 
@@ -104,6 +105,28 @@
     </div>
   </div>
 </footer>
+
+<!-- Settings modal (PIN setup / enable-disable) -->
+<div id="settingsOverlay" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span>⚙️ App Settings</span>
+      <button type="button" class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div id="settingsBody"></div>
+  </div>
+</div>
+
+<!-- Lock screen (shown on load if PIN lock is enabled) -->
+<div id="lockOverlay" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-head"><span>🔒 Enter PIN</span></div>
+    <p class="lock-text">This app is PIN-protected. Enter your PIN to continue.</p>
+    <input id="lockPinInput" class="pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off" onkeydown="if(event.key==='Enter')tryUnlock()">
+    <div id="lockError" class="lock-error"></div>
+    <button type="button" class="save-btn lock-btn" onclick="tryUnlock()">Unlock</button>
+  </div>
+</div>
 
 <script src="tank1.js"></script>
 <script src="script.js"></script>

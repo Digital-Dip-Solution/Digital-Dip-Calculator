@@ -47,7 +47,7 @@ function tickClock(){
   const el=document.getElementById('clock');
   if(!el) return;
   const now=new Date();
-  const dateStr=now.toLocaleDateString(undefined,{day:'2-digit',month:'short',year:'numeric'});
+  const dateStr=now.toLocaleDateString(undefined,{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
   const timeStr=now.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   el.innerText=dateStr+'  •  '+timeStr;
 }
@@ -87,7 +87,7 @@ function saveReading(inputId,tankLabel){
     tank:tankLabel,
     dip:parseFloat(dip),
     volume:volumeText,
-    time:new Date().toLocaleString(undefined,{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})
+    time:new Date().toLocaleString(undefined,{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})
   };
 
   const list=loadHistory();
@@ -182,4 +182,122 @@ function toggleTheme(){
   let saved='dark';
   try{ saved=localStorage.getItem(THEME_KEY)||'dark'; }catch(e){}
   applyTheme(saved);
+})();
+
+/* ---------- PIN lock ---------- */
+const PIN_KEY='fuelDipPin';
+const PIN_ENABLED_KEY='fuelDipPinEnabled';
+
+function getPin(){
+  try{ return localStorage.getItem(PIN_KEY)||''; }catch(e){ return ''; }
+}
+function setPinStorage(pin){
+  try{ localStorage.setItem(PIN_KEY,pin); }catch(e){}
+}
+function isPinEnabled(){
+  try{ return localStorage.getItem(PIN_ENABLED_KEY)==='1'; }catch(e){ return false; }
+}
+function setPinEnabled(on){
+  try{ localStorage.setItem(PIN_ENABLED_KEY,on?'1':'0'); }catch(e){}
+}
+
+/* ---- Settings modal ---- */
+function openSettings(){
+  renderSettings();
+  document.getElementById('settingsOverlay').style.display='flex';
+}
+function closeSettings(){
+  document.getElementById('settingsOverlay').style.display='none';
+}
+
+function renderSettings(){
+  const body=document.getElementById('settingsBody');
+  const hasPin=getPin()!=='';
+  const enabled=isPinEnabled();
+
+  if(!hasPin){
+    body.innerHTML=
+      '<p class="settings-note">Set a 4–6 digit PIN to lock this app. Once set, you can turn the lock on or off any time from here.</p>'+
+      '<input id="newPinInput" class="pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="New PIN">'+
+      '<input id="confirmPinInput" class="pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="Confirm PIN">'+
+      '<div id="settingsError" class="lock-error"></div>'+
+      '<button type="button" class="settings-btn" onclick="saveNewPin()">Set PIN &amp; Enable Lock</button>';
+    return;
+  }
+
+  body.innerHTML=
+    '<div class="settings-row">'+
+      '<span>App Lock (PIN)</span>'+
+      '<label class="switch">'+
+        '<input type="checkbox" id="lockEnableToggle"'+(enabled?' checked':'')+' onchange="onToggleLock(this.checked)">'+
+        '<span class="switch-slider"></span>'+
+      '</label>'+
+    '</div>'+
+    '<p class="settings-note">When enabled, the app will ask for your PIN every time it is opened.</p>'+
+    '<button type="button" class="settings-btn" onclick="showChangePin()">Change PIN</button>'+
+    '<button type="button" class="settings-btn danger" onclick="removePin()">Remove PIN</button>'+
+    '<div id="changePinArea"></div>';
+}
+
+function onToggleLock(checked){
+  setPinEnabled(checked);
+}
+
+function showChangePin(){
+  const area=document.getElementById('changePinArea');
+  area.innerHTML=
+    '<input id="newPinInput" class="pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="New PIN" style="margin-top:14px">'+
+    '<input id="confirmPinInput" class="pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="Confirm PIN">'+
+    '<div id="settingsError" class="lock-error"></div>'+
+    '<button type="button" class="settings-btn" onclick="saveNewPin()">Save New PIN</button>';
+}
+
+function saveNewPin(){
+  const p1=document.getElementById('newPinInput').value.trim();
+  const p2=document.getElementById('confirmPinInput').value.trim();
+  const err=document.getElementById('settingsError');
+
+  if(!/^\d{4,6}$/.test(p1)){
+    err.innerText='PIN must be 4–6 digits.';
+    return;
+  }
+  if(p1!==p2){
+    err.innerText='PINs do not match.';
+    return;
+  }
+
+  setPinStorage(p1);
+  setPinEnabled(true);
+  err.innerText='';
+  renderSettings();
+}
+
+function removePin(){
+  if(!confirm('Remove the PIN and disable app lock?')) return;
+  try{
+    localStorage.removeItem(PIN_KEY);
+    localStorage.removeItem(PIN_ENABLED_KEY);
+  }catch(e){}
+  renderSettings();
+}
+
+/* ---- Lock screen shown on load ---- */
+function tryUnlock(){
+  const input=document.getElementById('lockPinInput');
+  const err=document.getElementById('lockError');
+  if(input.value===getPin()){
+    document.getElementById('lockOverlay').style.display='none';
+    err.innerText='';
+    input.value='';
+  }else{
+    err.innerText='Incorrect PIN, try again.';
+    input.value='';
+    input.focus();
+  }
+}
+
+(function checkLockOnLoad(){
+  if(isPinEnabled() && getPin()!==''){
+    document.getElementById('lockOverlay').style.display='flex';
+  }
 })();
