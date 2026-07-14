@@ -92,7 +92,7 @@ function saveReading(inputId,tankLabel){
 
   const list=loadHistory();
   list.unshift(entry);
-  if(list.length>50) list.length=50;
+  if(list.length>200) list.length=200;
   persistHistory(list);
   renderHistory();
 }
@@ -123,6 +123,44 @@ function renderHistory(){
 }
 
 renderHistory();
+
+/* ---------- Export history as CSV ---------- */
+function exportHistoryCSV(){
+  const list=loadHistory();
+  if(list.length===0){ alert('No readings saved yet.'); return; }
+
+  let csv='Tank,Dip (mm),Volume,Date & Time\n';
+  list.forEach(e=>{
+    csv+='"'+e.tank+'","'+e.dip+'","'+e.volume+'","'+e.time+'"\n';
+  });
+
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const stamp=new Date().toISOString().slice(0,10);
+  a.href=url;
+  a.download='fuel-dip-history-'+stamp+'.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ---------- Share history via WhatsApp ---------- */
+function shareHistoryWhatsApp(){
+  const list=loadHistory();
+  if(list.length===0){ alert('No readings saved yet.'); return; }
+
+  const recent=list.slice(0,20);
+  let text='*Fuel Dip Reading History*\n\n';
+  recent.forEach(e=>{
+    text+=e.time+' | '+e.tank+' | Dip: '+e.dip+'mm | '+e.volume+'\n';
+  });
+  if(list.length>20) text+='\n...and '+(list.length-20)+' more (export CSV for full list).';
+
+  const url='https://api.whatsapp.com/send?text='+encodeURIComponent(text);
+  window.open(url,'_blank');
+}
 
 /* ---------- Theme toggle ---------- */
 const THEME_KEY='fuelDipTheme';

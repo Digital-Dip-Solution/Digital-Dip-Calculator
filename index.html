@@ -70,7 +70,11 @@
 <section class="history">
   <div class="history-head">
     <span class="history-title">💾 Reading History</span>
-    <button type="button" class="history-clear" onclick="clearHistory()">Clear</button>
+    <div class="history-actions">
+      <button type="button" class="history-export" onclick="exportHistoryCSV()">⬇️ Export CSV</button>
+      <button type="button" class="history-export" onclick="shareHistoryWhatsApp()">📤 WhatsApp</button>
+      <button type="button" class="history-clear" onclick="clearHistory()">Clear</button>
+    </div>
   </div>
   <div id="historyList" class="history-list">
     <div class="history-empty">No readings saved yet.</div>
