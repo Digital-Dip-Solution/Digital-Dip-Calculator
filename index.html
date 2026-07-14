@@ -3,35 +3,38 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Khan Petroleum — Dip Calculator</title>
+<title>Khan Petroleum — Fuel Dip Calculator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#f4f5f7">
+<meta name="theme-color" content="#2563EB">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
-<header class="site-head">
+<div class="bg-orb bg-orb-1" aria-hidden="true"></div>
+<div class="bg-orb bg-orb-2" aria-hidden="true"></div>
+
+<header class="site-head" id="navHome">
   <div class="plate">
-    <button type="button" class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle dark/light theme">
-      <span id="themeIcon">🌙</span>
-    </button>
-    <span class="plate-eyebrow">Dip Reading → Litres</span>
-    <h1>Khan Petroleum</h1>
+    <div class="plate-badge">🛢 Fuel Management System</div>
+    <h1 class="customer-name">Khan Petroleum</h1>
+    <p class="plate-tagline">Fuel Dip Calculator</p>
     <div class="plate-clock" id="clock">—</div>
-    <button type="button" class="settings-toggle" id="settingsToggle" onclick="openSettings()" aria-label="App settings">⚙️</button>
   </div>
 </header>
 
-<main class="tanks tanks-single">
+<main class="tanks tanks-single" id="navTanks">
 
   <section class="tank-card" data-tank="t1">
     <div class="tank-card-head">
-      <span class="tank-chip">25-KL</span>
+      <span class="tank-chip">🛢 25-KL Tank</span>
       <span class="tank-capacity">cap. 23,462&nbsp;L</span>
     </div>
 
@@ -45,17 +48,24 @@
 
       <div class="tank-controls">
         <label class="field">
-          <span class="field-label">Dip reading</span>
+          <span class="field-label">📏 Dip reading</span>
           <span class="field-input-wrap">
-            <input id="t1" inputmode="decimal" autocomplete="off" placeholder="0" oninput="calc('t1',tank1,'r1')">
+            <span class="field-icon">📏</span>
+            <input id="t1" inputmode="decimal" autocomplete="off" placeholder="Enter dip in mm" oninput="calc('t1',tank1,'r1')">
             <span class="field-suffix">mm</span>
           </span>
         </label>
 
-        <div class="readout">
-          <span class="readout-label">Volume</span>
+        <div class="readout" id="readout1">
+          <div class="readout-top">
+            <span class="readout-check">✅</span>
+            <span class="readout-label">⛽ Available Fuel</span>
+          </div>
           <div id="r1" class="readout-value">0.00 L</div>
-          <span id="p1" class="readout-pct">0% full</span>
+          <div class="readout-meta">
+            <span id="p1" class="readout-pct">0% full</span>
+            <span id="rem1" class="readout-remaining">Rem. 23,462 L</span>
+          </div>
         </div>
 
         <div class="btn-row">
@@ -68,12 +78,14 @@
 
 </main>
 
-<section class="history">
+<section class="history" id="navReports">
   <div class="history-head">
-    <span class="history-title">💾 Reading History</span>
+    <span class="history-title">📊 Reading History</span>
     <div class="history-actions">
-      <button type="button" class="history-export" onclick="exportHistoryCSV()">⬇️ Export CSV</button>
-      <button type="button" class="history-export" onclick="shareHistoryWhatsApp()">📤 WhatsApp</button>
+      <button type="button" class="history-export" onclick="exportHistoryCSV()">⬇️ CSV</button>
+      <button type="button" class="history-pdf" onclick="exportHistoryPDF()">📄 PDF</button>
+      <button type="button" class="history-excel" onclick="exportHistoryExcel()">📊 Excel</button>
+      <button type="button" class="history-whatsapp" onclick="shareHistoryWhatsApp()">📤 WhatsApp</button>
       <button type="button" class="history-clear" onclick="clearHistory()">Clear</button>
     </div>
   </div>
@@ -91,7 +103,7 @@
       <span class="dev-company">Digital <em>Dip</em> Solutions</span>
     </div>
 
-    <div class="dev-sub">Developed by Waqar Ali Punjab &nbsp;•&nbsp; App v1.3</div>
+    <div class="dev-sub">Powered by Waqar Ali &nbsp;•&nbsp; Version 2.0</div>
 
     <div class="dev-contact">
       <a href="mailto:Waqarali.punjab@gmail.com" class="dev-link">
@@ -127,6 +139,22 @@
     <button type="button" class="save-btn lock-btn" onclick="tryUnlock()">Unlock</button>
   </div>
 </div>
+
+<!-- ===== BOTTOM NAV (mobile) ===== -->
+<nav class="bottom-nav" id="bottomNav" aria-label="Section navigation">
+  <a href="#navHome" class="nav-item is-active" data-nav="navHome">
+    <span class="nav-icon">🏠</span><span class="nav-label">Home</span>
+  </a>
+  <a href="#navTanks" class="nav-item" data-nav="navTanks">
+    <span class="nav-icon">🛢</span><span class="nav-label">Tanks</span>
+  </a>
+  <a href="#navReports" class="nav-item" data-nav="navReports">
+    <span class="nav-icon">📊</span><span class="nav-label">Reports</span>
+  </a>
+  <button type="button" class="nav-item nav-item-btn" onclick="openSettings()">
+    <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
+  </button>
+</nav>
 
 <script src="tank1.js"></script>
 <script src="script.js"></script>

@@ -5,8 +5,11 @@ function calc(id,data,res){
   const r=document.getElementById(res);
   const gaugeId='g'+id.slice(1);
   const pctId='p'+id.slice(1);
+  const remId='rem'+id.slice(1);
   const gauge=document.getElementById(gaugeId);
   const pctEl=document.getElementById(pctId);
+  const remEl=document.getElementById(remId);
+  const readout=document.getElementById('readout'+id.slice(1));
   const maxLitres=data[data.length-1][1];
 
   r.classList.remove('is-error');
@@ -15,6 +18,8 @@ function calc(id,data,res){
     r.innerText='0.00 L';
     if(gauge) gauge.style.height='0%';
     if(pctEl) pctEl.innerText='0% full';
+    if(remEl) remEl.innerText='Rem. '+maxLitres.toLocaleString()+' L';
+    if(readout) readout.classList.remove('has-value');
     return;
   }
 
@@ -25,6 +30,8 @@ function calc(id,data,res){
     r.classList.add('is-error');
     if(gauge) gauge.style.height='0%';
     if(pctEl) pctEl.innerText='check reading';
+    if(remEl) remEl.innerText='Rem. —';
+    if(readout) readout.classList.remove('has-value');
     return;
   }
 
@@ -32,6 +39,16 @@ function calc(id,data,res){
   const pct=Math.max(0,Math.min(100,(x/maxLitres)*100));
   if(gauge) gauge.style.height=pct.toFixed(1)+'%';
   if(pctEl) pctEl.innerText=pct.toFixed(0)+'% full';
+  if(remEl){
+    const remaining=Math.max(0,maxLitres-x);
+    remEl.innerText='Rem. '+remaining.toLocaleString(undefined,{maximumFractionDigits:0})+' L';
+  }
+
+  if(readout){
+    readout.classList.remove('has-value');
+    void readout.offsetWidth; /* restart pop animation */
+    readout.classList.add('has-value');
+  }
 }
 
 /* ---------- Clear a single tank's input ---------- */
@@ -124,6 +141,28 @@ function renderHistory(){
 
 renderHistory();
 
+/* ---------- Share or download helper ---------- */
+async function shareOrDownloadBlob(blob,filename,mime){
+  try{
+    if(navigator.canShare && navigator.share){
+      const file=new File([blob],filename,{type:mime});
+      if(navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],title:filename});
+        return;
+      }
+    }
+  }catch(e){ /* user cancelled or share unsupported — fall back to download */ }
+
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 /* ---------- Export history as CSV ---------- */
 function exportHistoryCSV(){
   const list=loadHistory();
@@ -135,15 +174,67 @@ function exportHistoryCSV(){
   });
 
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
   const stamp=new Date().toISOString().slice(0,10);
-  a.href=url;
-  a.download='fuel-dip-history-'+stamp+'.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  shareOrDownloadBlob(blob,'fuel-dip-history-'+stamp+'.csv','text/csv');
+}
+
+/* ---------- Export history as PDF ---------- */
+function exportHistoryPDF(){
+  const list=loadHistory();
+  if(list.length===0){ alert('No readings saved yet.'); return; }
+  if(!window.jspdf || !window.jspdf.jsPDF){
+    alert('PDF export needs an internet connection to load the first time. Please check your connection and try again.');
+    return;
+  }
+
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+
+  doc.setFontSize(16);
+  doc.setTextColor(37,99,235);
+  doc.text('Khan Petroleum',14,18);
+  doc.setFontSize(11);
+  doc.setTextColor(100,100,100);
+  doc.text('Fuel Dip Reading Report',14,25);
+  doc.setFontSize(9);
+  doc.text('Generated: '+new Date().toLocaleString(),14,31);
+
+  const rows=list.map(e=>[e.tank,e.dip+' mm',e.volume,e.time]);
+
+  doc.autoTable({
+    startY:36,
+    head:[['Tank','Dip','Volume','Date & Time']],
+    body:rows,
+    headStyles:{fillColor:[37,99,235]},
+    styles:{fontSize:9}
+  });
+
+  const stamp=new Date().toISOString().slice(0,10);
+  const blob=doc.output('blob');
+  shareOrDownloadBlob(blob,'fuel-dip-history-'+stamp+'.pdf','application/pdf');
+}
+
+/* ---------- Export history as Excel ---------- */
+function exportHistoryExcel(){
+  const list=loadHistory();
+  if(list.length===0){ alert('No readings saved yet.'); return; }
+  if(!window.XLSX){
+    alert('Excel export needs an internet connection to load the first time. Please check your connection and try again.');
+    return;
+  }
+
+  const rows=[['Tank','Dip (mm)','Volume','Date & Time']];
+  list.forEach(e=>rows.push([e.tank,e.dip,e.volume,e.time]));
+
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:10},{wch:10},{wch:14},{wch:22}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Dip History');
+
+  const stamp=new Date().toISOString().slice(0,10);
+  const wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  const blob=new Blob([wbout],{type:'application/octet-stream'});
+  shareOrDownloadBlob(blob,'fuel-dip-history-'+stamp+'.xlsx','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 }
 
 /* ---------- Share history via WhatsApp ---------- */
@@ -162,25 +253,24 @@ function shareHistoryWhatsApp(){
   window.open(url,'_blank');
 }
 
-/* ---------- Theme toggle ---------- */
+/* ---------- Theme toggle (controlled from Settings) ---------- */
 const THEME_KEY='fuelDipTheme';
 
 function applyTheme(theme){
-  document.body.classList.toggle('light-theme',theme==='light');
-  const icon=document.getElementById('themeIcon');
-  if(icon) icon.innerText=theme==='light'?'☀️':'🌙';
+  document.body.classList.toggle('dark-theme',theme==='dark');
+  const toggle=document.getElementById('darkModeToggle');
+  if(toggle) toggle.checked=(theme==='dark');
 }
 
-function toggleTheme(){
-  const isLight=document.body.classList.contains('light-theme');
-  const next=isLight?'dark':'light';
+function onSettingsThemeToggle(checked){
+  const next=checked?'dark':'light';
   applyTheme(next);
   try{ localStorage.setItem(THEME_KEY,next); }catch(e){}
 }
 
 (function initTheme(){
-  let saved='dark';
-  try{ saved=localStorage.getItem(THEME_KEY)||'dark'; }catch(e){}
+  let saved='light';
+  try{ saved=localStorage.getItem(THEME_KEY)||'light'; }catch(e){}
   applyTheme(saved);
 })();
 
@@ -214,9 +304,20 @@ function renderSettings(){
   const body=document.getElementById('settingsBody');
   const hasPin=getPin()!=='';
   const enabled=isPinEnabled();
+  const isDark=document.body.classList.contains('dark-theme');
+
+  const themeRow=
+    '<div class="settings-row">'+
+      '<span>🌙 Dark Mode</span>'+
+      '<label class="switch">'+
+        '<input type="checkbox" id="darkModeToggle"'+(isDark?' checked':'')+' onchange="onSettingsThemeToggle(this.checked)">'+
+        '<span class="switch-slider"></span>'+
+      '</label>'+
+    '</div>';
 
   if(!hasPin){
     body.innerHTML=
+      themeRow+
       '<p class="settings-note">Set a 4–6 digit PIN to lock this app. Once set, you can turn the lock on or off any time from here.</p>'+
       '<input id="newPinInput" class="pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="New PIN">'+
       '<input id="confirmPinInput" class="pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="Confirm PIN">'+
@@ -226,6 +327,7 @@ function renderSettings(){
   }
 
   body.innerHTML=
+    themeRow+
     '<div class="settings-row">'+
       '<span>App Lock (PIN)</span>'+
       '<label class="switch">'+
@@ -300,4 +402,16 @@ function tryUnlock(){
   if(isPinEnabled() && getPin()!==''){
     document.getElementById('lockOverlay').style.display='flex';
   }
+})();
+
+/* ---------- Bottom nav ---------- */
+(function initBottomNav(){
+  const items=document.querySelectorAll('.bottom-nav .nav-item[data-nav]');
+  if(!items.length) return;
+  items.forEach(function(item){
+    item.addEventListener('click',function(){
+      items.forEach(function(i){ i.classList.remove('is-active'); });
+      item.classList.add('is-active');
+    });
+  });
 })();
