@@ -48,7 +48,7 @@ body{
   border: 1px solid var(--line);
   background: linear-gradient(180deg, var(--panel-raised), var(--panel));
   border-radius: var(--radius);
-  padding: 22px 64px 22px 26px;
+  padding: 22px 112px 22px 26px;
   position: relative;
   overflow: hidden;
 }
@@ -424,7 +424,7 @@ body{
 .settings-toggle{
   position: absolute;
   top: 18px;
-  left: 20px;
+  right: 68px;
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -735,4 +735,10 @@ body.light-theme .history-row{
 
 @media (max-width: 480px){
   .dev-contact{ flex-direction: column; gap: 10px; }
+
+  .plate{ padding: 18px 92px 18px 18px; }
+  .theme-toggle,
+  .settings-toggle{ width: 34px; height: 34px; font-size: 15px; top: 14px; }
+  .theme-toggle{ right: 14px; }
+  .settings-toggle{ right: 54px; }
 }
