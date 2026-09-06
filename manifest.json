@@ -1,6 +1,6 @@
 {
-  "name": "Khan Petroleum — Fuel Dip Calculator",
-  "short_name": "Fuel Dip",
+  "name": "Khan Pump Dip Calculator",
+  "short_name": "Khan Pump Dip",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#F8FAFC",

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Khan Petroleum — Fuel Dip Calculator</title>
+<title>Khan Pump Dip Calculator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -47,11 +47,11 @@
 <div id="lockScreen" class="lock-overlay" style="display:none;">
   <div class="lock-card">
     <div class="lock-icon">🔒</div>
-    <h2>Enter PIN</h2>
-    <p class="lock-sub">This app is protected. Enter PIN to continue.</p>
+    <h2 data-i18n="lock.title">Enter PIN</h2>
+    <p class="lock-sub" data-i18n="lock.sub">This app is protected. Enter PIN to continue.</p>
     <input id="lockInput" class="lock-input" type="password" inputmode="numeric" autocomplete="off" placeholder="••••">
     <div id="lockError" class="lock-error"></div>
-    <button type="button" class="cta-btn" onclick="attemptUnlock()">Unlock</button>
+    <button type="button" class="cta-btn" onclick="attemptUnlock()" data-i18n="lock.unlock">Unlock</button>
   </div>
 </div>
 
@@ -104,11 +104,11 @@
       <div class="view-toggle-grid" id="viewToggleGrid">
         <button type="button" class="view-toggle-btn" data-view="mobile" onclick="onViewModeChange('mobile')">
           <span class="view-toggle-icon">📱</span>
-          <span class="view-toggle-name">Mobile View</span>
+          <span class="view-toggle-name" data-i18n="settings.mobileView">Mobile View</span>
         </button>
         <button type="button" class="view-toggle-btn" data-view="desktop" onclick="onViewModeChange('desktop')">
           <span class="view-toggle-icon">🖥️</span>
-          <span class="view-toggle-name">Desktop View</span>
+          <span class="view-toggle-name" data-i18n="settings.desktopView">Desktop View</span>
         </button>
       </div>
     </div>
@@ -121,6 +121,29 @@
       <select id="languageSelect" class="scheme-select" onchange="onLanguageChange(this.value)">
         <option value="en">English</option>
         <option value="ru">Roman Urdu</option>
+      </select>
+    </div>
+
+    <div class="modal-row">
+      <div>
+        <div class="modal-row-title" data-i18n="settings.dateFormat">🗓️ Date Format</div>
+        <div class="modal-row-sub" data-i18n="settings.dateFormatSub">Kis tarteeb mein date dikhani hai</div>
+      </div>
+      <select id="dateFormatSelect" class="scheme-select" onchange="onDateFormatChange(this.value)">
+        <option value="dmy">Date-Month-Year</option>
+        <option value="mdy">Month-Date-Year</option>
+        <option value="ymd">Year-Month-Date</option>
+      </select>
+    </div>
+
+    <div class="modal-row">
+      <div>
+        <div class="modal-row-title" data-i18n="settings.timeFormat">🕐 Time Format</div>
+        <div class="modal-row-sub" data-i18n="settings.timeFormatSub">12-Hour ya 24-Hour clock</div>
+      </div>
+      <select id="timeFormatSelect" class="scheme-select" onchange="onTimeFormatChange(this.value)">
+        <option value="24">24-Hour</option>
+        <option value="12">12-Hour (AM/PM)</option>
       </select>
     </div>
 
@@ -169,6 +192,30 @@
 
     <div class="modal-row modal-row-stack">
       <div>
+        <div class="modal-row-title">📊 Saved Entries</div>
+        <div class="modal-row-sub">Kitni entries is waqt is device par save hain</div>
+      </div>
+      <div class="entry-counts-grid" id="entryCountsGrid">
+        <div class="entry-count-card">
+          <span class="entry-count-icon">📊</span>
+          <span class="entry-count-num" id="countReading">0</span>
+          <span class="entry-count-label">Reading<br>(max 200)</span>
+        </div>
+        <div class="entry-count-card">
+          <span class="entry-count-icon">📦</span>
+          <span class="entry-count-num" id="countStock">0</span>
+          <span class="entry-count-label">Stock<br>(max 500)</span>
+        </div>
+        <div class="entry-count-card">
+          <span class="entry-count-icon">🚛</span>
+          <span class="entry-count-num" id="countUnload">0</span>
+          <span class="entry-count-label">Unload<br>(max 500)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-row modal-row-stack">
+      <div>
         <div class="modal-row-title">💾 Backup &amp; Restore</div>
         <div class="modal-row-sub" id="lastBackupInfo">Last backup: Never</div>
       </div>
@@ -177,7 +224,7 @@
         <button type="button" class="save-btn save-btn-secondary" onclick="triggerRestoreFile()">⬆ Restore from backup</button>
       </div>
       <input type="file" id="restoreFileInput" accept=".json,application/json" style="display:none;" onchange="restoreBackupFile(this)">
-      <div class="modal-row-sub">Backup file mein aapki poori history, settings aur PIN shamil hote hain. Ise Google Drive, WhatsApp ya Email kar ke mehfooz rakhein.</div>
+      <div class="modal-row-sub">Backup file mein aapki poori history, settings aur PIN shamil hote hain. Ise Google Drive, WhatsApp ya Email kar ke mehfooz rakhein.<br><strong>⚠️ Aapka data sirf isi device/browser par save hota hai. Ise regularly backup/export karna aapki apni zimmedari hai — developer data loss ka zimmedar nahi hoga.</strong></div>
     </div>
 
     <button type="button" class="modal-row modal-row-link" onclick="closeSettings();openAbout();">
@@ -194,14 +241,14 @@
 <div class="modal-overlay" id="aboutModal" style="display:none;" onclick="closeAboutOnBg(event)">
   <div class="modal-card about-card">
     <div class="modal-head">
-      <h2>ℹ️ About Application</h2>
+      <h2 data-i18n="about.title">ℹ️ About Application</h2>
       <button type="button" class="modal-close" onclick="closeAbout()">✕</button>
     </div>
 
     <div class="about-body">
       <div class="about-hero">
         <div class="about-app-name">Digital Fuel Dip Calculator</div>
-        <div class="about-app-version">Version: 29.0.1</div>
+        <div class="about-app-version">Version: 31.1.0</div>
       </div>
 
       <p class="about-lead">A modern, accurate, and user-friendly fuel tank dip calculator designed specifically for petrol pumps. The application converts manual dip readings into accurate fuel volume using calibrated dip charts with automatic interpolation.</p>
@@ -268,9 +315,60 @@
 
       <hr class="about-divider">
 
+      <h3 class="about-heading">Data Storage &amp; Limits</h3>
+      <p class="about-text">All data — including dip readings, stock entries, and unloading entries — is stored locally on this device's browser only. It is not uploaded to any server or cloud.</p>
+      <p class="about-text">Reading History can hold up to <strong>200</strong> saved entries, Stock History up to <strong>500</strong>, and Unloading History up to <strong>500</strong>. Once a limit is reached, the oldest entry is automatically removed to make room for a new one.</p>
+      <div class="entry-counts-grid" id="entryCountsGridAbout">
+        <div class="entry-count-card">
+          <span class="entry-count-icon">📊</span>
+          <span class="entry-count-num" id="countReadingAbout">0</span>
+          <span class="entry-count-label">Reading<br>(max 200)</span>
+        </div>
+        <div class="entry-count-card">
+          <span class="entry-count-icon">📦</span>
+          <span class="entry-count-num" id="countStockAbout">0</span>
+          <span class="entry-count-label">Stock<br>(max 500)</span>
+        </div>
+        <div class="entry-count-card">
+          <span class="entry-count-icon">🚛</span>
+          <span class="entry-count-num" id="countUnloadAbout">0</span>
+          <span class="entry-count-label">Unload<br>(max 500)</span>
+        </div>
+      </div>
+      <p class="about-text"><strong>⚠️ Important: Data backup is entirely your own responsibility.</strong> Please back up or export your history regularly using the CSV / PDF / Excel / Backup options. The developer is <strong>not responsible</strong> for any data loss caused by clearing browser storage/cache, uninstalling or reinstalling the app, phone reset, switching to a new device/browser, or any other reason. Always keep your own backup copy safe (e.g. in Google Drive, WhatsApp, or Email).</p>
+
+      <hr class="about-divider">
+
       <h3 class="about-heading">Thank You</h3>
       <p class="about-text">Thank you for choosing Digital Fuel Dip Calculator.</p>
       <p class="about-text">We are committed to continuously improving the application by adding new features, enhancing performance, and providing reliable support for the petroleum industry.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== EDIT READING MODAL ===== -->
+<div class="modal-overlay" id="editReadingModal" style="display:none;" onclick="closeEditReadingOnBg(event)">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2 data-i18n="edit.readingTitle">✏️ Edit Reading</h2>
+      <button type="button" class="modal-close" onclick="closeEditReading()">✕</button>
+    </div>
+    <div class="modal-row modal-row-stack">
+      <div>
+        <div class="modal-row-title" id="editReadingTank">—</div>
+      </div>
+      <div class="pin-setup" style="display:flex;">
+        <label class="field">
+          <span class="field-label" data-i18n="edit.dip">📏 Dip (mm)</span>
+          <input id="editReadingDip" class="settings-input" inputmode="decimal" autocomplete="off">
+        </label>
+        <label class="field">
+          <span class="field-label" data-i18n="tank.note">📝 Note (optional)</span>
+          <input id="editReadingNote" class="settings-input" type="text" autocomplete="off" maxlength="120">
+        </label>
+        <div id="editReadingMsg" class="pin-setup-msg"></div>
+        <button type="button" class="save-btn" onclick="saveEditReading()" data-i18n="edit.saveChanges">Save Changes</button>
+      </div>
     </div>
   </div>
 </div>
@@ -285,14 +383,14 @@
       <div class="plate-badge">🛢 Fuel Management System</div>
       <h1 class="customer-name" id="customerNameDisplay">Khan Petroleum</h1>
       <p class="plate-address" id="plateAddress" style="display:none;"></p>
-      <p class="plate-tagline">Fuel Dip Calculator</p>
+      <p class="plate-tagline" data-i18n="home.tagline">Fuel Dip Calculator</p>
       <div class="plate-clock" id="clock">—</div>
     </div>
   </header>
 
   <section class="site-info-card">
     <div class="site-info-head">
-      <span class="site-info-title">🛢 Fuel Storage Tank — Info</span>
+      <span class="site-info-title" data-i18n="home.tankInfo">🛢 Fuel Storage Tank — Info</span>
       <span class="site-info-tag">P-1 TANK</span>
     </div>
     <div class="site-info-capacity">CAPACITY: <strong>23,500 Ltrs</strong></div>
@@ -327,7 +425,7 @@
       </div>
 
       <div class="dev-meta">
-        <div class="dev-version">App Version : 4.29</div>
+        <div class="dev-version">App Version : 4.31.1</div>
         <div class="dev-copyright">© 2026 All Rights Reserved</div>
       </div>
     </div>
@@ -419,17 +517,17 @@
 <div class="app-panel" id="panelReports" data-panel="navReports" style="display:none;">
   <section class="history">
     <div class="history-head">
-      <span class="history-title">📊 Reading History</span>
+      <span class="history-title" data-i18n="reports.title">📊 Reading History</span>
       <div class="history-actions">
         <button type="button" class="history-export" onclick="exportHistoryCSV()">⬇️ CSV</button>
         <button type="button" class="history-pdf" onclick="exportHistoryPDF()">📄 PDF</button>
         <button type="button" class="history-excel" onclick="exportHistoryExcel()">📊 Excel</button>
         <button type="button" class="history-whatsapp" onclick="shareHistoryWhatsApp()">📤 WhatsApp</button>
-        <button type="button" class="history-clear" onclick="clearHistory()">Clear</button>
+        <button type="button" class="history-clear" onclick="clearHistory()" data-i18n="reports.clearAll">Clear</button>
       </div>
     </div>
     <div id="historyList" class="history-list">
-      <div class="history-empty">No readings saved yet.</div>
+      <div class="history-empty" data-i18n="reports.noReadings">No readings saved yet.</div>
     </div>
   </section>
 </div>
@@ -438,7 +536,7 @@
 <div class="app-panel" id="panelChart" data-panel="navChart" style="display:none;">
   <section class="chart-section">
     <div class="chart-head">
-      <span class="chart-title">📋 Dip Calibration Chart</span>
+      <span class="chart-title" data-i18n="chart.title">📋 Dip Calibration Chart</span>
       <span class="chart-note">Tank 1 — full reference table</span>
     </div>
 
@@ -459,6 +557,333 @@
   </section>
 </div>
 
+<!-- ===== STOCK MANAGEMENT PANEL ===== -->
+<div class="app-panel" id="panelStock" data-panel="navStock" style="display:none;">
+  <section class="chart-section">
+    <div class="chart-head">
+      <span class="chart-title">📦 Stock Management</span>
+      <span class="chart-note">Daily product-wise stock register</span>
+    </div>
+
+    <div class="unload-form-grid">
+      <label class="field">
+        <span class="field-label">📅 Date</span>
+        <input id="sk_date" class="settings-input" type="date">
+      </label>
+      <label class="field">
+        <span class="field-label">🛢 Product</span>
+        <div class="field-with-btn">
+          <select id="sk_product" class="scheme-select" onchange="onStockProductChange()"></select>
+          <button type="button" class="field-manage-btn" onclick="openManageProducts()" title="Add / Edit / Remove Products">⚙️</button>
+        </div>
+      </label>
+      <label class="field">
+        <span class="field-label">📝 Description</span>
+        <input id="sk_desc" class="settings-input" type="text" autocomplete="off" placeholder="e.g. 340 drum" oninput="calcStock()">
+      </label>
+    </div>
+    <div id="sk_openingHint" class="pin-setup-msg" style="margin:-6px 0 8px;"></div>
+
+    <div class="unload-divider"><span>📊 Stock Figures (Litres)</span></div>
+
+    <div class="unload-form-grid">
+      <label class="field">
+        <span class="field-label">Opening</span>
+        <input id="sk_opening" class="settings-input" inputmode="decimal" autocomplete="off" placeholder="0" oninput="calcStock()">
+      </label>
+      <label class="field">
+        <span class="field-label">Arrival</span>
+        <input id="sk_arrival" class="settings-input" inputmode="decimal" autocomplete="off" placeholder="0" oninput="calcStock()">
+      </label>
+      <label class="field">
+        <span class="field-label">Sale</span>
+        <input id="sk_sale" class="settings-input" inputmode="decimal" autocomplete="off" placeholder="0" oninput="calcStock()">
+      </label>
+      <label class="field">
+        <span class="field-label">Dip Stock (Ltrs)</span>
+        <input id="sk_dipStock" class="settings-input" inputmode="decimal" autocomplete="off" placeholder="0" oninput="calcStock()">
+      </label>
+      <label class="field">
+        <span class="field-label">📏 Dip (mm) — auto-fills Ltrs above</span>
+        <span class="field-input-wrap">
+          <input id="sk_dipMM" inputmode="decimal" autocomplete="off" placeholder="mm" oninput="onStockDipMM()">
+          <span class="field-suffix">mm</span>
+        </span>
+      </label>
+    </div>
+
+    <div class="unload-summary">
+      <div class="unload-sum-row is-total"><span>TOTAL (Opening + Arrival)</span><strong id="sk_total">0.00</strong></div>
+      <div class="unload-sum-row is-total"><span>BALANCE (Total − Sale)</span><strong id="sk_balance">0.00</strong></div>
+      <div class="unload-sum-row is-final"><span>SHORT / EXCESS</span><strong id="sk_stEx">0.00</strong></div>
+    </div>
+
+    <div class="btn-row">
+      <button type="button" class="save-btn" onclick="saveStockEntry()">💾 Save</button>
+      <button type="button" class="copy-btn" onclick="printStock()">🖨️ Print</button>
+      <button type="button" class="copy-btn" onclick="shareStockImage()">📤 Share Image</button>
+      <button type="button" class="clear-btn" onclick="clearStockForm()">✕ Clear</button>
+    </div>
+  </section>
+
+  <section class="history">
+    <div class="history-head">
+      <span class="history-title">📜 Stock History</span>
+      <div class="history-actions">
+        <button type="button" class="history-export" onclick="exportStockCSV()">⬇️ CSV</button>
+        <button type="button" class="history-pdf" onclick="exportStockPDF()">📄 PDF</button>
+        <button type="button" class="history-excel" onclick="exportStockExcel()">📊 Excel</button>
+        <button type="button" class="history-whatsapp" onclick="shareStockWhatsApp()">📤 WhatsApp</button>
+        <button type="button" class="history-clear" onclick="clearStockHistory()">Clear</button>
+      </div>
+    </div>
+    <div id="stockHistoryList" class="history-list">
+      <div class="history-empty">No stock entries saved yet.</div>
+    </div>
+  </section>
+</div>
+
+<!-- ===== TANK UNLOADING PANEL ===== -->
+<div class="app-panel" id="panelUnload" data-panel="navUnload" style="display:none;">
+  <section class="chart-section">
+    <div class="chart-head">
+      <span class="chart-title">🚛 Vehicle Unloading — Tank Status</span>
+      <span class="chart-note">Record every fuel delivery / vehicle unloading</span>
+    </div>
+
+    <div class="unload-divider"><span>🚚 Vehicle &amp; Vendor Details</span></div>
+    <div class="unload-form-grid">
+      <label class="field">
+        <span class="field-label">📅 Date</span>
+        <input id="ul_date" class="settings-input" type="date">
+      </label>
+      <label class="field">
+        <span class="field-label">🏢 Vendor Name</span>
+        <input id="ul_vendor" class="settings-input" type="text" autocomplete="off" placeholder="e.g. PSO" oninput="calcUnload()">
+      </label>
+      <label class="field">
+        <span class="field-label">🚛 Vehicle No</span>
+        <input id="ul_vehicle" class="settings-input" type="text" autocomplete="off" placeholder="e.g. ABC-123" oninput="calcUnload()">
+      </label>
+      <label class="field">
+        <span class="field-label">🧑 Driver Name</span>
+        <input id="ul_driver" class="settings-input" type="text" autocomplete="off" placeholder="e.g. Ghulam Abbas" oninput="calcUnload()">
+      </label>
+      <label class="field">
+        <span class="field-label">📞 Contact No</span>
+        <input id="ul_contact" class="settings-input" type="text" autocomplete="off" placeholder="e.g. 0300-1234567" oninput="calcUnload()">
+      </label>
+      <label class="field">
+        <span class="field-label">🛢 Unloading Tank</span>
+        <select id="ul_tank" class="scheme-select" onchange="calcUnload()">
+          <option value="25-KL Tank">25-KL Tank (Tank 1)</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="unload-divider"><span>📏 Dip Readings (mm)</span></div>
+    <div class="unload-form-grid">
+      <label class="field">
+        <span class="field-label">Current Dip (mm)</span>
+        <input id="ul_curDip" inputmode="decimal" autocomplete="off" placeholder="e.g. 1020" oninput="calcUnload()">
+      </label>
+      <label class="field">
+        <span class="field-label">Current Ltrs (auto)</span>
+        <input id="ul_curLtrs" class="settings-input" readonly tabindex="-1" placeholder="0.00">
+      </label>
+      <label class="field">
+        <span class="field-label">Prv Dip (mm)</span>
+        <input id="ul_prvDip" inputmode="decimal" autocomplete="off" placeholder="e.g. 550" oninput="calcUnload()">
+      </label>
+      <label class="field">
+        <span class="field-label">Prv Ltrs (auto)</span>
+        <input id="ul_prvLtrs" class="settings-input" readonly tabindex="-1" placeholder="0.00">
+      </label>
+      <label class="field">
+        <span class="field-label">Sale Liters</span>
+        <input id="ul_sale" class="settings-input" inputmode="decimal" autocomplete="off" placeholder="0" oninput="calcUnload()">
+      </label>
+      <label class="field">
+        <span class="field-label">📦 Inv Stock (Ltrs) — physical count</span>
+        <input id="ul_invStock" class="settings-input" inputmode="decimal" autocomplete="off" placeholder="0" oninput="calcUnload()">
+      </label>
+    </div>
+
+    <div class="unload-summary">
+      <div class="unload-sum-row"><span>Balance Liters (Current − Prv)</span><strong id="ul_balance">0.00</strong></div>
+      <div class="unload-sum-row"><span>Sale Liters</span><strong id="ul_saleOut">0.00</strong></div>
+      <div class="unload-sum-row is-total"><span>TOTAL LITERS</span><strong id="ul_total">0.00</strong></div>
+      <div class="unload-sum-row is-total"><span>TOTAL STOCK</span><strong id="ul_totalStock">0.00</strong></div>
+      <div class="unload-sum-row"><span>INV STOCK</span><strong id="ul_invStockOut">0.00</strong></div>
+      <div class="unload-sum-row is-final"><span>ST / EX LITER</span><strong id="ul_stEx">0.00</strong></div>
+    </div>
+
+    <div class="btn-row">
+      <button type="button" class="save-btn" onclick="saveUnloadEntry()">💾 Save</button>
+      <button type="button" class="copy-btn" onclick="printUnload()">🖨️ Print</button>
+      <button type="button" class="copy-btn" onclick="shareUnloadImage()">📤 Share Image</button>
+      <button type="button" class="clear-btn" onclick="clearUnloadForm()">✕ Clear</button>
+    </div>
+  </section>
+
+  <section class="history">
+    <div class="history-head">
+      <span class="history-title">🚛 Unloading History</span>
+      <div class="history-actions">
+        <button type="button" class="history-export" onclick="exportUnloadCSV()">⬇️ CSV</button>
+        <button type="button" class="history-pdf" onclick="exportUnloadPDF()">📄 PDF</button>
+        <button type="button" class="history-excel" onclick="exportUnloadExcel()">📊 Excel</button>
+        <button type="button" class="history-whatsapp" onclick="shareUnloadWhatsApp()">📤 WhatsApp</button>
+        <button type="button" class="history-clear" onclick="clearUnloadHistory()">Clear</button>
+      </div>
+    </div>
+    <div id="unloadHistoryList" class="history-list">
+      <div class="history-empty">No unloading entries saved yet.</div>
+    </div>
+  </section>
+</div>
+
+<!-- ===== EDIT UNLOAD ENTRY MODAL ===== -->
+<div class="modal-overlay" id="editUnloadModal" style="display:none;" onclick="closeEditUnloadOnBg(event)">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>✏️ Edit Unloading Entry</h2>
+      <button type="button" class="modal-close" onclick="closeEditUnload()">✕</button>
+    </div>
+    <div class="modal-row modal-row-stack">
+      <div class="unload-form-grid">
+        <label class="field">
+          <span class="field-label">📅 Date</span>
+          <input id="eu_date" class="settings-input" type="date">
+        </label>
+        <label class="field">
+          <span class="field-label">🏢 Vendor Name</span>
+          <input id="eu_vendor" class="settings-input" type="text" autocomplete="off">
+        </label>
+        <label class="field">
+          <span class="field-label">🚛 Vehicle No</span>
+          <input id="eu_vehicle" class="settings-input" type="text" autocomplete="off">
+        </label>
+        <label class="field">
+          <span class="field-label">🧑 Driver Name</span>
+          <input id="eu_driver" class="settings-input" type="text" autocomplete="off">
+        </label>
+        <label class="field">
+          <span class="field-label">📞 Contact No</span>
+          <input id="eu_contact" class="settings-input" type="text" autocomplete="off">
+        </label>
+        <label class="field">
+          <span class="field-label">📏 Current Dip (mm)</span>
+          <input id="eu_curDip" inputmode="decimal" autocomplete="off" oninput="onEditUnloadDipChange()">
+        </label>
+        <label class="field">
+          <span class="field-label">📏 Prv Dip (mm)</span>
+          <input id="eu_prvDip" inputmode="decimal" autocomplete="off" oninput="onEditUnloadDipChange()">
+        </label>
+        <label class="field">
+          <span class="field-label">Sale Liters</span>
+          <input id="eu_sale" class="settings-input" inputmode="decimal" autocomplete="off">
+        </label>
+        <label class="field">
+          <span class="field-label">📦 Inv Stock (Ltrs)</span>
+          <input id="eu_invStock" class="settings-input" inputmode="decimal" autocomplete="off">
+        </label>
+      </div>
+      <div id="editUnloadMsg" class="pin-setup-msg"></div>
+      <button type="button" class="save-btn" onclick="saveEditUnload()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== EDIT STOCK ENTRY MODAL ===== -->
+<div class="modal-overlay" id="editStockModal" style="display:none;" onclick="closeEditStockOnBg(event)">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>✏️ Edit Stock Entry</h2>
+      <button type="button" class="modal-close" onclick="closeEditStock()">✕</button>
+    </div>
+    <div class="modal-row modal-row-stack">
+      <div class="unload-form-grid">
+        <label class="field">
+          <span class="field-label">📅 Date</span>
+          <input id="es_date" class="settings-input" type="date">
+        </label>
+        <label class="field">
+          <span class="field-label">🛢 Product</span>
+          <select id="es_product" class="scheme-select"></select>
+        </label>
+        <label class="field">
+          <span class="field-label">📝 Description</span>
+          <input id="es_desc" class="settings-input" type="text" autocomplete="off">
+        </label>
+        <label class="field">
+          <span class="field-label">Opening</span>
+          <input id="es_opening" class="settings-input" inputmode="decimal" autocomplete="off">
+        </label>
+        <label class="field">
+          <span class="field-label">Arrival</span>
+          <input id="es_arrival" class="settings-input" inputmode="decimal" autocomplete="off">
+        </label>
+        <label class="field">
+          <span class="field-label">Sale</span>
+          <input id="es_sale" class="settings-input" inputmode="decimal" autocomplete="off">
+        </label>
+        <label class="field">
+          <span class="field-label">Dip Stock (Ltrs)</span>
+          <input id="es_dipStock" class="settings-input" inputmode="decimal" autocomplete="off">
+        </label>
+        <label class="field">
+          <span class="field-label">📏 Dip (mm) — auto-fills Ltrs above</span>
+          <span class="field-input-wrap">
+            <input id="es_dipMM" inputmode="decimal" autocomplete="off" placeholder="mm" oninput="onEditStockDipMM()">
+            <span class="field-suffix">mm</span>
+          </span>
+        </label>
+      </div>
+      <div id="editStockMsg" class="pin-setup-msg"></div>
+      <button type="button" class="save-btn" onclick="saveEditStock()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MANAGE PRODUCTS MODAL ===== -->
+<div class="modal-overlay" id="manageProductsModal" style="display:none;" onclick="closeManageProductsOnBg(event)">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>🛢 Manage Products</h2>
+      <button type="button" class="modal-close" onclick="closeManageProducts()">✕</button>
+    </div>
+    <div class="modal-row modal-row-stack">
+      <div id="productManageList" class="product-manage-list"></div>
+      <div class="pin-setup" style="display:flex;">
+        <label class="field">
+          <span class="field-label">➕ Add New Product</span>
+          <input id="newProductInput" class="settings-input" type="text" autocomplete="off" placeholder="e.g. HOBC">
+        </label>
+        <div id="manageProductsMsg" class="pin-setup-msg"></div>
+        <button type="button" class="save-btn" onclick="addNewProduct()">Add Product</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ENTRY IMAGE PREVIEW MODAL ===== -->
+<div class="modal-overlay" id="imagePreviewModal" style="display:none;" onclick="closeImagePreview(event)">
+  <div class="modal-card image-preview-card">
+    <div class="modal-head">
+      <h2>🖼️ Entry View</h2>
+      <button type="button" class="modal-close" onclick="closeImagePreview()">✕</button>
+    </div>
+    <div class="image-preview-body">
+      <img id="imagePreviewImg" class="image-preview-img" alt="Entry image">
+    </div>
+    <div class="btn-row">
+      <button type="button" class="copy-btn" onclick="downloadPreviewImage()">⬇️ Download</button>
+      <button type="button" class="copy-btn" onclick="sharePreviewImage()">📤 Share</button>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <!-- ===== BOTTOM NAV ===== -->
@@ -474,6 +899,12 @@
   </button>
   <button type="button" class="nav-item" data-nav="navChart" onclick="showPanel('navChart')">
     <span class="nav-icon">📋</span><span class="nav-label" data-i18n="nav.chart">Dip Chart</span>
+  </button>
+  <button type="button" class="nav-item" data-nav="navStock" onclick="showPanel('navStock')">
+    <span class="nav-icon">📦</span><span class="nav-label">Stock</span>
+  </button>
+  <button type="button" class="nav-item" data-nav="navUnload" onclick="showPanel('navUnload')">
+    <span class="nav-icon">🚛</span><span class="nav-label">Unload</span>
   </button>
   <button type="button" class="nav-item nav-item-btn" onclick="openSettings()">
     <span class="nav-icon">⚙️</span><span class="nav-label" data-i18n="nav.settings">Settings</span>
